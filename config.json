@@ -1,0 +1,8 @@
+{
+  "node_id": "storage_node_01",
+  "port": 8081,
+  "master_url": "http://127.0.0.1:8000",
+  "storage_root": "./data",
+  "jwt_secret": "CHANGE_THIS_SECRET_TO_MATCH_PYTHON_MASTER",
+  "heartbeat_interval": 30
+}
