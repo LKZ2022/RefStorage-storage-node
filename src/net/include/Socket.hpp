@@ -1,4 +1,4 @@
-//Copyright (c) 2026 Liu Kaizhi
+//Copyright (c) 2026 Kaizhi Liu
 //Licensed under the Apache License, Version 2.0.
 
 #pragma once
@@ -18,9 +18,8 @@ namespace ref_storage::net {
      * Note: This class is intended for server-side use only. */
 
     class Socket {
-
-        //Forward Declaration
-        struct FD;
+    private:
+        SocketHandle _fd;
 
     public:
 
@@ -29,7 +28,7 @@ namespace ref_storage::net {
         Socket();
 
         // Construct from an existing fd (used for a socket returned by accept)
-        explicit Socket(FD fd);
+        explicit Socket(SocketHandle fd);
 
 
         // Copying is disabled (Socket is an exclusive resource), moving is allowed (Move semantics)
@@ -75,7 +74,7 @@ namespace ref_storage::net {
         void setRecvTimeout(int seconds);
 
     private:
-        FD _fd;
+        SocketHandle _fd;
 
         //Helper Function:
     };
