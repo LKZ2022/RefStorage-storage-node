@@ -1,8 +1,10 @@
 //Copyright (c) 2026 Kaizhi Liu
 //Licensed under the Apache License, Version 2.0.
+
 #pragma once
 #include <utility>
 #include <system_error>
+#include <iostream>
 
 #ifdef _WIN32
 
@@ -27,7 +29,9 @@ namespace ref_storage::net {
     /* Here, we define a C++ class and use conditional compilation to encapsulate SOCKET (uint_ptr) on Windows systems
      * and int (file descriptor) on Linux systems, along with their corresponding invalid values.
      * At the same time, we encapsulate functions that are frequently used and differ between Windows and Linux systems.
-     * This approach can reduce the use of conditional compilation and improve portability. */
+     * This approach can reduce the use of conditional compilation and improve portability.
+     * All errors thrown in this class are of type std::system_error.
+     */
 
     class SocketHandle {
     private:
@@ -42,8 +46,9 @@ namespace ref_storage::net {
         NativeSocketType _handle = kInvalid;
 
     public:
-
+        // Do not make the default constructor publicly accessible.
         explicit SocketHandle() noexcept;
+
         // Constructed from a native handle, requires taking ownership.
         explicit SocketHandle(NativeSocketType handle) noexcept;
 
@@ -61,10 +66,12 @@ namespace ref_storage::net {
         /* Because implicit conversion can lead to some uncontrollable risks,
          * we completely prohibit implicit conversion here.
          * Implicit conversions can lead to certain uncontrollable risks, so we completely prohibit implicit conversions here.
-         * For instance, in all the constructors mentioned above, we have used 'explicit'. */
+         * For instance, in all the constructors mentioned above, we have used 'explicit'.
+         */
 
         /* Obtain the native value, similar to pointer dereferencing.
-         * This is the only permitted way to access a native handle. */
+         * This is the only permitted way to access a native handle.
+         */
         [[nodiscard]] NativeSocketType native_handle() const noexcept;
 
         // We demonstrate the removal of all types of implicit conversion operations.
@@ -99,8 +106,9 @@ namespace ref_storage::net {
         void close_handle() noexcept;
 
         // The following encapsulates all native system functions (Windows and Linux).
-        int bind_handle(const struct sockaddr* addr, socklen_t addrlen) const;
-        [[nodiscard]] int listen_handle(int backlog = 10) const;
+        int bind_handle(const struct sockaddr* addr, socklen_t addrlen);
+        // int backlog: Waiting queue length
+        [[nodiscard]] int listen_handle(int backlog = 10);
         SocketHandle accept_handle(struct sockaddr* addr = nullptr, socklen_t* addrlen = nullptr) const;
 
         // The following is the factory method.

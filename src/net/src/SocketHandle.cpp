@@ -4,7 +4,7 @@
 
 #include "../include/SocketHandle.hpp"
 
-#include <iostream>
+
 
 
 namespace ref_storage::net {
@@ -81,6 +81,7 @@ namespace ref_storage::net {
 
             /* Stop sending and receiving data
              * Set to non-blocking mode to avoid blocking. */
+
 #ifdef _WIN32
             shutdown(_handle, SD_BOTH);
 
@@ -110,14 +111,14 @@ namespace ref_storage::net {
         }
     }
 
-    int SocketHandle::bind_handle(const struct sockaddr *addr, socklen_t addrlen) const {
+    int SocketHandle::bind_handle(const struct sockaddr *addr, socklen_t addrlen)  {
         if (!is_valid_handle()) {
             throw_last_error("bind_handle() failed: Invalid socket ");
         }
         return bind(_handle, addr, addrlen);
     }
 
-    int SocketHandle::listen_handle(int backlog) const {
+    int SocketHandle::listen_handle(int backlog) {
         if (!is_valid_handle()) {
             throw_last_error("listen_handle() failed: Invalid socket ");
         }
