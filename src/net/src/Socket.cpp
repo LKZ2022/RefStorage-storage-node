@@ -19,6 +19,7 @@ namespace ref_storage::net {
         }
 
         if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+            WSACleanup();
             throw_last_error(("WSAStartup() failed: Winsock 2.2 is not supported, actual version: " +
                               std::to_string(LOBYTE(wsaData.wVersion)) + "." +
                               std::to_string(HIBYTE(wsaData.wVersion))).c_str());
@@ -315,6 +316,7 @@ namespace ref_storage::net {
          * FILE_ATTRIBUTE_NORMAL: Standard file attributes
          * FILE_FLAG_SEQUENTIAL_SCAN: Optimization flag indicating the system will read the file sequentially
          * nullptr: No template file
+         * A single call can transmit up to approximately 2 GB of data (2,147,483,646 bytes).
          */
         HANDLE hFile = CreateFileA(filepath.c_str(),
                                 GENERIC_READ,
