@@ -69,7 +69,7 @@ namespace ref_storage::net {
 
         /* Send data.
          * Return the actual number of bytes sent. */
-        size_t sendData(const void* buf, size_t len, int timeout_ms = 1000) const;
+        void sendData(const void *buf, size_t len, int timeout_ms = 1000) const;
 
         /* Receiving data.
          * expectedSize: The expected number of bytes to be received.

@@ -179,10 +179,10 @@ namespace ref_storage::net {
         return CommunicationSocket;
     }
 
-    size_t Socket::sendData(const void *buf, size_t len, int timeout_ms) const {
+    void Socket::sendData(const void *buf, size_t len, int timeout_ms) const {
         // Consider only blocking mode.
         if (!buf || len == 0) {
-            return 0;
+            return;
         }
 
         if (!_fd.is_valid_handle()) {
@@ -209,8 +209,6 @@ namespace ref_storage::net {
             }
 
         }
-
-        return len - remaining;
     }
 
     std::vector<char> Socket::recvData(size_t expectedSize) const {
