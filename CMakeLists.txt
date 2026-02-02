@@ -32,5 +32,12 @@ add_executable(storage_node
         src/utils/include/Logger.hpp
         src/net/src/SocketHandle.cpp
         src/net/include/SocketHandle.hpp
+        src/main.cpp
 )
 
+if(WIN32)
+    target_link_libraries(storage_node
+            ws2_32
+            mswsock
+    )
+endif()
