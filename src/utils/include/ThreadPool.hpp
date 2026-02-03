@@ -2,6 +2,8 @@
 //Licensed under the Apache License, Version 2.0.
 
 #pragma once
+
+#include "../include/common/TaskType.hpp"
 #include <condition_variable>
 #include <thread>
 #include <vector>
@@ -15,7 +17,7 @@ namespace ref_storage::utils {
     class ThreadPool {
     private:
         std::vector<std::thread> workers;
-        std::queue<std::function<void()> > tasks;
+        std::queue< std::function<void()> > tasks;
 
         std::mutex queue_mutex;
         std::condition_variable condition;
@@ -27,9 +29,9 @@ namespace ref_storage::utils {
 
         // Submit Task.
         template <class F, class... Args>
-        auto enqueue(F&& f, Args&&... args) -> std::future<typename std::invoke_result<F, Args...>::type> {
+        auto enqueue(F&& f, Args&&... args) -> std::future< std::invoke_result_t<F, Args...> > {
 
-            using return_type = typename std::invoke_result<F, Args...>::type;
+            using return_type = std::invoke_result_t<F, Args...>;
 
             auto task = std::make_shared< std::packaged_task<return_type()> >(
                 [func = std::forward<F>(f), args = std::make_tuple(std::forward<Args>(args)...)]() mutable {

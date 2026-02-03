@@ -14,7 +14,7 @@ int main() {
     ref_storage::utils::ThreadPool  thread_pool(10);
 
     for (int i = 0; i < 10; i++) {
-        thread_pool.enqueue([i]() {testPrint(i);});
+        thread_pool.enqueue(testPrint, i);
     }
 
     return 0;

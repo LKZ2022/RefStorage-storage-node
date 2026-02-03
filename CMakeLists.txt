@@ -33,6 +33,7 @@ add_executable(storage_node
         src/net/src/SocketHandle.cpp
         src/net/include/SocketHandle.hpp
         src/main.cpp
+        include/common/TaskType.hpp
 )
 
 if(WIN32)
