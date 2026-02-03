@@ -6,6 +6,7 @@
 
 
 
+
 namespace ref_storage::net {
 
     Socket::Socket() {
@@ -83,7 +84,7 @@ namespace ref_storage::net {
 #ifdef _WIN32
         if (result == SOCKET_ERROR) {
 #elif __linux__
-        if (result < 0) {}
+        if (result < 0) {
 #endif
             throw_last_error("setsockopt() failed: ");
         }
@@ -135,7 +136,7 @@ namespace ref_storage::net {
             flags &= ~O_NONBLOCK;
         }
 
-        if (fcntl(socket_fd_, F_SETFL, flags) == -1) {
+        if (fcntl(_fd.native_handle(), F_SETFL, flags) == -1) {
             throw_last_error("Failed to set non-blocking mode");
         }
 #endif
@@ -235,7 +236,7 @@ namespace ref_storage::net {
 #elif __linux__
                 ssize_t result = recv(_fd.native_handle(), buffet.data(), expectedSize - total_received, 0);
                 if (result < 0 ) {
-                    throw std::runtime_error("recv() failed: " + std::to_string(errno);
+                    throw std::runtime_error("recv() failed: " + std::to_string(errno));
                 }else if (result == 0) {
                     throw std::runtime_error("Connection closed by peer. ");
                 }
@@ -259,8 +260,8 @@ namespace ref_storage::net {
             }
 #elif __linux__
                 ssize_t result = recv(_fd.native_handle(),
-                                         reinterpret_cast<char*>(&dataSize) + headerReceived,
-                                         sizeof(dataSize) - headerReceived, 0);
+                                         reinterpret_cast<char*>(&datasize) + head_received,
+                                         sizeof(datasize) - head_received, 0);
                 if (result < 0) {
                     throw std::runtime_error("Linux recv header failed, error code: " +
                                              std::to_string(errno));
@@ -351,9 +352,11 @@ namespace ref_storage::net {
 
 
         int file_fd = open(filepath.c_str(), O_RDONLY);
-        if (file_fd < 0) return false;
+        if (file_fd < 0) {
+            throw std::runtime_error("Failed to open file.");
+        }
 
-        struct stat stat_buf;
+        struct stat stat_buf{};
         fstat(file_fd, &stat_buf);
         off_t offset = 0;
         ssize_t sent_bytes;
@@ -364,16 +367,12 @@ namespace ref_storage::net {
             if (sent_bytes <= 0) {
                 if (errno == EAGAIN) continue;
                 close(file_fd);
-                return false;
+                throw std::runtime_error("Failed to send file.");
             }
             // The offset will be automatically updated by sendfile.
         }
 
         close(file_fd);
-        return true;
-    }
-
-
 #endif
     }
 
