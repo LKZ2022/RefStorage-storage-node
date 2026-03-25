@@ -54,5 +54,4 @@ namespace ref_storage::utils {
             worker.join();
         }
     }
-
 }

@@ -134,7 +134,7 @@ namespace ref_storage::net {
     }
 
     SocketHandle SocketHandle::create_socket_handle() {
-        NativeSocketType sock = socket(AF_UNSPEC, SOCK_STREAM, 0);
+        NativeSocketType sock = socket(AF_INET6, SOCK_STREAM, 0);
         if (sock == kInvalid) {
             throw_last_error("socket() failed");
         }

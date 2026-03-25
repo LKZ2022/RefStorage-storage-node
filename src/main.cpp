@@ -1,22 +1,12 @@
 #include <iostream>
 #include <../src/utils/include/ThreadPool.hpp>
 
-std::mutex mtx;
-
-void testPrint(int msg) {
-    mtx.lock();
-    std::cout << "Thread ID: " << std::this_thread::get_id() <<" executing operation output to console, output value: " << msg << std::endl;
-    mtx.unlock();
-}
-
+#include "core/include/Server.hpp"
 
 int main() {
-    ref_storage::utils::ThreadPool  thread_pool(10);
 
-    for (int i = 0; i < 10; i++) {
-        thread_pool.enqueue(testPrint, i);
-    }
+    ref_storage::core::Server::init(8080, "test_server_config.config");
+    ref_storage::core::Server::get_instance().start(100);
 
     return 0;
-
 }

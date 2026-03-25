@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "../include/common/TaskType.hpp"
 #include <condition_variable>
 #include <thread>
 #include <vector>

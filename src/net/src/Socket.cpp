@@ -25,7 +25,6 @@ namespace ref_storage::net {
                               std::to_string(LOBYTE(wsaData.wVersion)) + "." +
                               std::to_string(HIBYTE(wsaData.wVersion))).c_str());
         }
-
         _fd = SocketHandle::create_socket_handle();
 
         if (_fd.native_handle() == INVALID_SOCKET) {
