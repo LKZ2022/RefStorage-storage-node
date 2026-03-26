@@ -19,10 +19,13 @@ namespace ref_storage::core {
         std::unique_ptr<utils::ThreadPool> thread_pool_;
         bool is_running_;
         int port_;
+        const char *address_;
         size_t num_threads_;
 
     private:
         Server();
+        ~Server();
+
         void doInit(int port, const std::string& config_path);
 
         static std::once_flag init_flag;
@@ -41,6 +44,9 @@ namespace ref_storage::core {
         void start(size_t thread_const);
         void stop();
 
+        net::Socket* get_socket();
+
+        void add_client_socket(net::Socket&& client_socket);
 
     };
 }

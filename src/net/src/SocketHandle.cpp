@@ -72,39 +72,24 @@ namespace ref_storage::net {
 
     void SocketHandle::close_handle() noexcept {
         if (is_valid_handle()) {
-            // Set the socket's SO_LINGER option to handle data that hasn't been fully sent.
-            struct linger linger_opt{};
-            linger_opt.l_onoff = 1;
-            linger_opt.l_linger = 1;
-            setsockopt(_handle, SOL_SOCKET, SO_LINGER,
-                        reinterpret_cast<const char *>(&linger_opt), sizeof(linger_opt));
-
-            /* Stop sending and receiving data
-             * Set to non-blocking mode to avoid blocking. */
-
+            /* Graceful shutdown: no longer sending or receiving new data,
+             * but the operating system will flush the underlying buffers. */
 #ifdef _WIN32
             shutdown(_handle, SD_BOTH);
-
-            u_long mode = 1;
-            ioctlsocket(_handle, FIONBIO, &mode);
+            int result = closesocket(_handle);
 #elif __linux__
             shutdown(_handle, SHUT_RDWR);
-
-            int flags = fcntl(_handle, F_GETFL, 0);
-            fcntl(_handle, F_SETFL, flags | O_NONBLOCK);
-#endif
-
-            // Try turning it off.
-            int result;
-
-#ifdef _WIN32
-            result = closesocket(_handle);
-#elif __linux__
-            result = close(_handle);
+            int result = close(_handle);
 #endif
 
             if (result == -1) {
-                std::cerr << "Warning: close_handle() failed: " << _handle << std::endl;
+#ifdef _WIN32
+                std::cerr << "Warning: close_handle() failed on handle " << _handle
+                          << ", Error Code: " << WSAGetLastError() << std::endl;
+#elif __linux__
+                std::cerr << "Warning: close_handle() failed on handle " << _handle
+                          << ", Error Code: " << errno << std::endl;
+#endif
             }
 
             _handle = kInvalid;

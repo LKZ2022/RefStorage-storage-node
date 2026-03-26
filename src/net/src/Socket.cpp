@@ -11,24 +11,9 @@ namespace ref_storage::net {
 
     Socket::Socket() {
 #ifdef _WIN32
-        WSADATA wsaData;
-        int result;
-        //Initialize Winsock
-        result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-        if (result != 0) {
-            throw_last_error(("WSAStartup() failed: " + std::to_string(result)).c_str());
-        }
-
-        if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
-            WSACleanup();
-            throw_last_error(("WSAStartup() failed: Winsock 2.2 is not supported, actual version: " +
-                              std::to_string(LOBYTE(wsaData.wVersion)) + "." +
-                              std::to_string(HIBYTE(wsaData.wVersion))).c_str());
-        }
         _fd = SocketHandle::create_socket_handle();
 
         if (_fd.native_handle() == INVALID_SOCKET) {
-            WSACleanup();
             throw_last_error("create_socket_handle() failed: ");
         }
 
@@ -61,9 +46,7 @@ namespace ref_storage::net {
 
     Socket::~Socket() {
         _fd.close_handle();
-#ifdef _WIN32
-        WSACleanup();
-#endif
+
     }
 
     void Socket::setReuseAddress(bool enable) {
@@ -154,10 +137,13 @@ namespace ref_storage::net {
             addr.sin6_addr = in6addr_any;
         }else {
             if (inet_pton(AF_INET6, address, &addr.sin6_addr) != 1) {
-                std::string error_message = std::string("Invalid IPv6 address.") + address;
+                std::string error_message = std::string("Invalid IPv6 address: ") + address;
                 throw_last_error(error_message.c_str());
             }
         }
+
+        int no = 0;
+        setsockopt(_fd.native_handle(), IPPROTO_IPV6, IPV6_V6ONLY, (char*)&no, sizeof(no));
 
         if (_fd.bind_handle(reinterpret_cast<struct sockaddr *>(&addr),sizeof(addr)) < 0) {
             throw_last_error("bind() failed: ");
@@ -174,7 +160,7 @@ namespace ref_storage::net {
         }
         Socket CommunicationSocket = Socket(_fd.accept_handle());
         if (!CommunicationSocket._fd.is_valid_handle()) {
-            throw_last_error("accept() failed: ");
+            throw_last_error(("accept() failed, error code: " + std::to_string(WSAGetLastError())).c_str());
         }
         return CommunicationSocket;
     }
