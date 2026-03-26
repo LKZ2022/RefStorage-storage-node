@@ -17,9 +17,9 @@ namespace ref_storage::core {
         net::Socket listen_socket_;
         std::vector<net::Socket> client_sockets_;
         std::unique_ptr<utils::ThreadPool> thread_pool_;
-        bool is_running;
-        int port;
-        size_t num_threads;
+        bool is_running_;
+        int port_;
+        size_t num_threads_;
 
     private:
         Server();
@@ -40,5 +40,7 @@ namespace ref_storage::core {
 
         void start(size_t thread_const);
         void stop();
+
+
     };
 }
