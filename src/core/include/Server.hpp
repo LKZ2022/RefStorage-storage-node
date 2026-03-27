@@ -28,6 +28,8 @@ namespace ref_storage::core {
 
         void doInit(int port, const std::string& config_path);
 
+        void serverChatWorker(net::Socket &socket);
+
         static std::once_flag init_flag;
     public:
 

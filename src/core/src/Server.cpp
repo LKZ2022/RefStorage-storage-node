@@ -55,12 +55,8 @@ namespace ref_storage::core {
 
         std::cout << "Shutting down the server and all connections..." << std::endl;
 
-        // 1. 清空客户端连接（假设你是用 std::vector 或类似容器存的）
-        // 这会触发所有客户端 Socket 的析构和 close_handle，此时 Winsock 还没下班，完美关闭！
         client_sockets_.clear();
 
-        // 2. 关闭监听 Socket
-        // 使用你封装的 release 机制或新建一个空对象来掏空它
         {
             net::Socket empty_socket;
             listen_socket_ = std::move(empty_socket);
@@ -79,6 +75,14 @@ namespace ref_storage::core {
 
     void Server::add_client_socket(net::Socket &&client_socket) {
         client_sockets_.push_back(std::move(client_socket));
+        // temp
+        std::vector<char> tmp;
+        try {
+            tmp = client_sockets_.back().recvData(0);
+        } catch (std::exception &e) {
+            std::cerr << e.what() << std::endl;
+        }
+        std::cout << std::string(tmp.data(), tmp.size()) << std::endl;
     }
 
     Server::Server() : thread_pool_(nullptr), is_running_(false), port_(8080), address_("::1"),
@@ -89,9 +93,35 @@ namespace ref_storage::core {
     }
 
     void Server::doInit(int port, const std::string &config_path) {
-        // 处理配置文件
+
 
         port_ = port;
+    }
+
+    void Server::serverChatWorker(net::Socket& socket) {
+        std::cout << "[线程 " << std::this_thread::get_id() << "] 新客户端已接入，开始聊天服务。" << std::endl;
+
+        try {
+            while (true) {
+                std::vector<char> buffer = socket.recvData(0);
+
+                if (buffer.empty()) {
+                    continue;
+                }
+
+                std::string receivedMsg(buffer.data(), buffer.size());
+                std::cout << "[收到客户端消息]: " << receivedMsg << std::endl;
+
+                std::string replyMsg = "服务端已收到你的消息: [" + receivedMsg + "]";
+
+                socket.sendData(replyMsg.c_str(), replyMsg.size());
+            }
+        }
+        catch (const std::exception& e) {
+            // 5. 异常捕获：客户端断开连接、网络波动等都会跳到这里，不会导致整个服务端崩溃
+            std::cerr << "[客户端断开或异常] 线程 " << std::this_thread::get_id()
+                      << " 退出: " << e.what() << std::endl;
+        }
     }
 
     std::once_flag Server::init_flag;
