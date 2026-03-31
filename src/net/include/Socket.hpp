@@ -84,7 +84,7 @@ namespace ref_storage::net {
         void sendFile(const std::string& filepath);
 
     private:
-        static void throw_last_error(const char* operation);
+        void throw_last_error(const char* operation) const;
     };
 
 }

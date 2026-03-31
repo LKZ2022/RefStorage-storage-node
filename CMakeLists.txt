@@ -28,18 +28,23 @@ add_executable(storage_node
         src/core/include/RequestHandler.hpp
         src/utils/src/ThreadPool.cpp
         src/utils/include/ThreadPool.hpp
-        src/utils/src/Logger.cpp
-        src/utils/include/Logger.hpp
+        src/utils/src/AsyncLogger.cpp
+        src/utils/include/AsyncLogger.hpp
         src/net/src/SocketHandle.cpp
         src/net/include/SocketHandle.hpp
         src/main.cpp
         src/core/src/Server.cpp
         src/core/include/Server.hpp
+        src/core/include/PluginAPI.hpp
 )
 
 if(WIN32)
     target_link_libraries(storage_node
             ws2_32
             mswsock
+    )
+    target_compile_options(storage_node PRIVATE
+            /Zc:preprocessor
+            /utf-8
     )
 endif()

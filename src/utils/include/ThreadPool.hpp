@@ -16,7 +16,7 @@ namespace ref_storage::utils {
     class ThreadPool {
     private:
         std::vector<std::thread> workers;
-        std::queue< std::function<void()> > tasks;
+        std::queue< std::packaged_task<void()> > tasks;
 
         std::mutex queue_mutex;
         std::condition_variable condition;
@@ -28,30 +28,36 @@ namespace ref_storage::utils {
 
         // Submit Task.
         template <class F, class... Args>
-        auto enqueue(F&& f, Args&&... args) -> std::future< std::invoke_result_t<F, Args...> > {
-
+        auto enqueue(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>> {
             using return_type = std::invoke_result_t<F, Args...>;
 
-            auto task = std::make_shared< std::packaged_task<return_type()> >(
-                [func = std::forward<F>(f), args = std::make_tuple(std::forward<Args>(args)...)]() mutable {
-                    return std::apply(func, std::move(args));
-                }
-            );
+            // 创建 promise 和 future
+            auto promise = std::make_shared<std::promise<return_type>>();
+            auto future = promise->get_future();
 
-            std::future<return_type> res = task->get_future();
+            // NOLINT(cert-err58-cpp)
+            auto task = [promise, f = std::forward<F>(f), args = std::make_tuple(std::forward<Args>(args)...)]() mutable {
+                try {
+                    if constexpr (std::is_void_v<return_type>) {
+                        std::apply(f, std::move(args));
+                        promise->set_value();
+                    } else {
+                        promise->set_value(std::apply(f, std::move(args)));
+                    }
+                } catch (...) {
+                    promise->set_exception(std::current_exception());
+                }
+            };
+
             {
                 std::unique_lock<std::mutex> lock(queue_mutex);
-
                 if (stop) {
                     throw std::runtime_error("enqueue on stopped ThreadPool");
                 }
-                tasks.emplace([task]() {
-                    (*task)();
-                });
+                tasks.emplace(std::move(task));  // tasks 类型为 std::queue<std::function<void()>>
             }
-
             condition.notify_one();
-            return res;
+            return future;
         }
     };
 

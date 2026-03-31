@@ -12,19 +12,16 @@ namespace ref_storage::utils {
             for (size_t i = 0; i < threads; i++) {
                 workers.emplace_back([this]() {
                     while (true) {
-                        std::function<void()> task;
+                        std::packaged_task<void()> task;
                         {
-                            std::unique_lock<std::mutex> lock(this->queue_mutex);
-                            this->condition.wait(lock,[this] {
-                               return this->stop || !this->tasks.empty();
-                            });
-                            if (this->stop && this->tasks.empty()) {
+                            std::unique_lock<std::mutex> lock(queue_mutex);
+                            condition.wait(lock, [this] { return stop || !tasks.empty(); });
+                            if (stop && tasks.empty())
                                 return;
-                            }
-                            task = std::move(this->tasks.front());
-                            this->tasks.pop();
+                            task = std::move(tasks.front());
+                            tasks.pop();
                         }
-                        task();
+                        task();  // 执行任务
                     }
                 });
             }
